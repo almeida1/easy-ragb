@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.parser.TextDocumentParser;
+import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 
 /**
@@ -24,9 +24,19 @@ public class IndexingService {
         this.ingestor = ingestor;
     }
 
+    /**
+     * Método responsável por processar e indexar os documentos para que eles possam
+     * ser posteriormente consultados pelo modulo de recuperação de informações.
+     * O ApacheTikaDocumentParser identifica se é pdf, docx. É responsável por
+     * extrair o texto do documento.
+     * O EmbeddingStoreIngestor é responsável por indexar o documento.
+     * Faz parte do Ciclo RAG - Etapa de INDEXAÇÃO.
+     * 
+     * @param dataStream
+     */
     public void ingestDocument(InputStream dataStream) {
         logger.info(">>>>>> Indexação (Indexing) - Iniciando...");
-        Document document = new TextDocumentParser().parse(dataStream);
+        Document document = new ApacheTikaDocumentParser().parse(dataStream);
         ingestor.ingest(document);
         logger.info(">>>>>> Indexação concluída. Caracteres ingeridos: " + document.text().length());
     }
