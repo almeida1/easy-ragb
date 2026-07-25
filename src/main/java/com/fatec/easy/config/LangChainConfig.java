@@ -98,4 +98,5 @@ public class LangChainConfig {
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
                 .build();
     }
+
 }

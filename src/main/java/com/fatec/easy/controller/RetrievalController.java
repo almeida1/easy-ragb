@@ -1,7 +1,8 @@
 package com.fatec.easy.controller;
 
 import com.fatec.easy.model.ChatRequest;
-import com.fatec.easy.service.RagAssistant;
+import com.fatec.easy.service.RagAnswerResponse;
+import com.fatec.easy.service.RagTriadService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,15 +15,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/retrieval")
 public class RetrievalController {
 
-    private final RagAssistant ragAssistant;
+    private final RagTriadService ragTriadService;
 
-    public RetrievalController(RagAssistant ragAssistant) {
-        this.ragAssistant = ragAssistant;
+    public RetrievalController(RagTriadService ragTriadService) {
+        this.ragTriadService = ragTriadService;
     }
 
     @PostMapping("/consultar")
-    public ResponseEntity<String> consultar(@RequestBody ChatRequest request) {
-        String answer = ragAssistant.chat(request.getQuestion());
-        return ResponseEntity.ok(answer);
+    public ResponseEntity<RagAnswerResponse> consultar(@RequestBody ChatRequest request) {
+        RagAnswerResponse response = ragTriadService.answer(request.getQuestion());
+        return ResponseEntity.ok(response);
     }
 }
