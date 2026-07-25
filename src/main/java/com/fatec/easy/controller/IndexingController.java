@@ -1,6 +1,9 @@
 package com.fatec.easy.controller;
 
 import com.fatec.easy.service.IndexingService;
+
+import dev.ai4j.openai4j.OpenAiHttpException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -8,7 +11,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 /**
- * Controller responsável pela etapa de INDEXAÇÃO no ciclo RAG.
+ * O processo de RAG é dividido em três etapas: INDEXAÇÃO, RECUPERAÇÃO e GERAÇÃO.
+ * Na fase de INDEXAÇÃO, documentos são processados e armazenados em um índice para facilitar a recuperação futura.
+ * A indexação envolve a extração de informações relevantes dos documentos, como texto, metadados e outros elementos que possam ser úteis para responder a perguntas.
+ * A fase de RECUPERAÇÃO envolve a busca de informações relevantes no índice com base em a pergunta do usuário.
+ * Finalmente, na fase de GERAÇÃO, uma resposta é formulada com base nas informações
  */
 @CrossOrigin(origins = "*")
 @RestController
@@ -30,9 +37,15 @@ public class IndexingController {
         try {
             indexingService.ingestDocument(file.getInputStream());
             return ResponseEntity.ok("Documento indexado com sucesso: " + file.getOriginalFilename());
+        } catch (OpenAiHttpException e) {
+            return ResponseEntity.internalServerError()
+                    .body("Erro ao processar o arquivo para indexação: " + e.getMessage());
         } catch (IOException e) {
             return ResponseEntity.internalServerError()
                     .body("Erro ao processar o arquivo para indexação: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.internalServerError()
+                    .body("Erro ao indexar o documento: " + e.getMessage());
         }
     }
 }

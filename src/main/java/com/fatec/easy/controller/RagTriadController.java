@@ -2,7 +2,7 @@ package com.fatec.easy.controller;
 
 import com.fatec.easy.model.ChatRequest;
 import com.fatec.easy.service.RagAnswerResponse;
-import com.fatec.easy.service.RagTriadService;
+import com.fatec.easy.service.IRagTriadService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/rag")
 public class RagTriadController {
 
-    private final RagTriadService ragTriadService;
+    private final IRagTriadService ragTriadService;
 
-    public RagTriadController(RagTriadService ragTriadService) {
+    public RagTriadController(IRagTriadService ragTriadService) {
         this.ragTriadService = ragTriadService;
     }
 
