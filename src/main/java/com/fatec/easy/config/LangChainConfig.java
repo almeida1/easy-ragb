@@ -65,6 +65,9 @@ public class LangChainConfig {
     }
 
     // 4. Ingestor (Leva os documentos para a Store)
+    // armazena os documentos em um repositorio de embeddings para que possam ser recuperados posteriormente.
+    // por simplicidade neste exemplo esta sendo utilizado um store em memória(configurado no LangChainConfig), 
+    // mas em produção pode-se utilizar um banco de dados ou outro tipo de armazenamento persistente.
     @Bean
     public EmbeddingStoreIngestor embeddingStoreIngestor(EmbeddingModel embeddingModel,
             EmbeddingStore<TextSegment> embeddingStore) {

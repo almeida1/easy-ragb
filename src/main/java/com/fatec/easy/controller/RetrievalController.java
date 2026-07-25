@@ -2,7 +2,7 @@ package com.fatec.easy.controller;
 
 import com.fatec.easy.model.ChatRequest;
 import com.fatec.easy.service.RagAnswerResponse;
-import com.fatec.easy.service.RagTriadService;
+import com.fatec.easy.service.IRagTriadService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/retrieval")
 public class RetrievalController {
 
-    private final RagTriadService ragTriadService;
+    private final IRagTriadService ragTriadService;
 
-    public RetrievalController(RagTriadService ragTriadService) {
+    public RetrievalController(IRagTriadService ragTriadService) {
         this.ragTriadService = ragTriadService;
     }
 

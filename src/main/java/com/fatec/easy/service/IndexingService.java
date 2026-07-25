@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import dev.ai4j.openai4j.OpenAiHttpException;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
@@ -36,8 +37,16 @@ public class IndexingService {
      */
     public void ingestDocument(InputStream dataStream) {
         logger.info(">>>>>> Indexação (Indexing) - Iniciando...");
-        Document document = new ApacheTikaDocumentParser().parse(dataStream);
-        ingestor.ingest(document);
-        logger.info(">>>>>> Indexação concluída. Caracteres ingeridos: " + document.text().length());
+        try {
+            Document document = new ApacheTikaDocumentParser().parse(dataStream);
+            ingestor.ingest(document);
+            logger.info(">>>>>> Indexação concluída. Caracteres ingeridos: " + document.text().length());
+        } catch (OpenAiHttpException e) {
+            logger.error(">>>>>> Erro ao indexar o documento.", e);
+            throw e;
+        } catch (RuntimeException e) {
+            logger.error(">>>>>> Erro inesperado durante a indexação.", e);
+            throw e;
+        }
     }
 }

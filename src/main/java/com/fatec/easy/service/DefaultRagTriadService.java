@@ -2,16 +2,19 @@ package com.fatec.easy.service;
 
 import java.util.List;
 import org.springframework.stereotype.Service;
-
+/**
+ * Implementacao default do servico RAG triad.
+ * Avalia a resposta gerada com base na pergunta e no contexto recuperado.
+ */
 @Service
-public class DefaultRagTriadService implements RagTriadService {
+public class DefaultRagTriadService implements IRagTriadService {
 
-    private final RetrievalPort retrievalPort;
-    private final AnswerGenerationPort generationPort;
+    private final IRetrievalPort retrievalPort;
+    private final IAnswerGenerationPort generationPort;
     private final EvaluationPort evaluationPort;
 
-    public DefaultRagTriadService(RetrievalPort retrievalPort,
-            AnswerGenerationPort generationPort,
+    public DefaultRagTriadService(IRetrievalPort retrievalPort,
+            IAnswerGenerationPort generationPort,
             EvaluationPort evaluationPort) {
         this.retrievalPort = retrievalPort;
         this.generationPort = generationPort;

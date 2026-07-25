@@ -1,5 +1,5 @@
 package com.fatec.easy.service;
 
-public interface RagTriadService {
+public interface IRagTriadService {
     RagAnswerResponse answer(String question);
 }
