@@ -1,4 +1,4 @@
-package com.fatec.easy.service;
+package com.fatec.easy.model;
 
 import java.util.List;
 

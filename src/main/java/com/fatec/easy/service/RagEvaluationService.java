@@ -5,17 +5,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
+import com.fatec.easy.model.EvaluationResult;
+/**
+ * Cria um prompt para um "judge" LLM. O score é obtido do texto retornado pelo LLM com regex.
+ * Este serviço utiliza um assistente RAG para avaliar a precisão, utilidade e suporte da resposta fornecida em relação à 
+ * pergunta e ao contexto recuperado. A aplicação nao calcula o score de avaliação, mas sim delega a tarefa de avaliação 
+ * ao assistente LLM configurado configurado.
+ */
 @Service
-public class RagEvaluationService implements EvaluationPort {
+public class RagEvaluationService implements IEvaluationPort {
 
     private static final Pattern JSON_BOOLEAN = Pattern.compile("\\\"isAccurate\\\"\\s*:\\s*(true|false)");
     private static final Pattern JSON_SCORE = Pattern.compile("\\\"score\\\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)");
     private static final Pattern JSON_RATIONALE = Pattern.compile("\\\"rationale\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"");
     private static final Pattern JSON_EVIDENCE = Pattern.compile("\\\"evidence\\\"\\s*:\\s*\\\"([^\\\"]*)\\\"");
 
-    private final RagAssistant ragAssistant;
+    private final IRagAssistante ragAssistant;
 
-    public RagEvaluationService(RagAssistant ragAssistant) {
+    public RagEvaluationService(IRagAssistante ragAssistant) {
         this.ragAssistant = ragAssistant;
     }
 

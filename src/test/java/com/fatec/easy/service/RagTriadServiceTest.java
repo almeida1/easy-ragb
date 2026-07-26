@@ -2,42 +2,59 @@ package com.fatec.easy.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
 import org.junit.jupiter.api.Test;
+
+import com.fatec.easy.model.EvaluationResult;
+import com.fatec.easy.model.RagAnswerResponse;
 
 class RagTriadServiceTest {
 
     @Test
-    void shouldComposeAnswerAndEvaluationUsingPorts() {
-        IRetrievalPort retrievalPort = question -> List.of("Contexto A", "Contexto B");
-        IAnswerGenerationPort generationPort = (question, context) -> "Resposta gerada para " + question;
-        EvaluationPort evaluationPort = (question, answer, context) -> new EvaluationResult(
-                true,
-                "Boa resposta",
-                0.91,
-                "O conteúdo recuperado foi suficiente para sustentar a resposta");
+void shouldComposeAnswerAndEvaluationUsingEasyRagFlow() {
+    IRagAssistante assistant = message -> "Resposta gerada para " + message;
+    IEvaluationPort evaluationPort = (question, answer, context) -> new EvaluationResult(
+            true,
+            "Boa resposta",
+            0.91,
+            "O conteúdo recuperado foi suficiente para sustentar a resposta"
+    );
 
-        IRagTriadService service = new DefaultRagTriadService(retrievalPort, generationPort, evaluationPort);
+    // Instancia o adaptador que provê IRetrievalPort e IAnswerGenerationPort
+    var adapter = new LangChainRagAdapter(assistant);
 
-        RagAnswerResponse response = service.answer("Qual é a pergunta?");
+    // Passa as três portas necessárias para o serviço
+    IRagTriadService service = new DefaultRagTriadService(
+            evaluationPort,
+            adapter,  // IRetrievalPort
+            adapter   // IAnswerGenerationPort
+    );
 
-        assertThat(response.answer()).isEqualTo("Resposta gerada para Qual é a pergunta?");
-        assertThat(response.context()).containsExactly("Contexto A", "Contexto B");
-        assertThat(response.evaluation().isAccurate()).isTrue();
-        assertThat(response.evaluation().score()).isEqualTo(0.91);
-    }
+    RagAnswerResponse response = service.answer("Qual é a pergunta?");
+
+    assertThat(response.answer()).isEqualTo("Resposta gerada para Qual é a pergunta?");
+    assertThat(response.context()).containsExactly("Contexto recuperado automaticamente pela abordagem Easy RAG para: Qual é a pergunta?");
+    assertThat(response.evaluation().isAccurate()).isTrue();
+    assertThat(response.evaluation().score()).isEqualTo(0.91);
+}
 
     @Test
-    void shouldReturnLowScoreWhenAnswerDoesNotMatchContext() {
-        IRetrievalPort retrievalPort = question -> List.of("Contexto sobre políticas de desconto");
-        IAnswerGenerationPort generationPort = (question, context) -> "Resposta improvisada sem relação com o contexto";
-        EvaluationPort evaluationPort = (question, answer, context) -> new EvaluationResult(
+    void deveRetornarScoreBaixoQuandoContextoInvalido() {
+        IRagAssistante assistant = message -> "Resposta improvisada sem relação com o contexto";
+        IEvaluationPort evaluationPort = (question, answer, context) -> new EvaluationResult(
                 false,
                 "A resposta não está alinhada com o contexto recuperado",
                 0.12,
                 "O conteúdo recuperado não sustenta a resposta fornecida");
 
-        IRagTriadService service = new DefaultRagTriadService(retrievalPort, generationPort, evaluationPort);
+        // Instancia o adaptador que provê IRetrievalPort e IAnswerGenerationPort
+        var adapter = new LangChainRagAdapter(assistant);
+
+        // Passa as três portas necessárias para o serviço
+        IRagTriadService service = new DefaultRagTriadService(
+                evaluationPort,
+                adapter,  // IRetrievalPort
+                adapter   // IAnswerGenerationPort
+        );
 
         RagAnswerResponse response = service.answer("Qual é a política de desconto?");
 

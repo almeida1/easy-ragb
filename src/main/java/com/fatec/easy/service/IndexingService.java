@@ -31,7 +31,6 @@ public class IndexingService {
      * O ApacheTikaDocumentParser identifica se é pdf, docx. É responsável por
      * extrair o texto do documento.
      * O EmbeddingStoreIngestor é responsável por indexar o documento.
-     * Faz parte do Ciclo RAG - Etapa de INDEXAÇÃO.
      * 
      * @param dataStream
      */
