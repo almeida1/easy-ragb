@@ -1,7 +1,7 @@
 package com.fatec.easy.controller;
 
 import com.fatec.easy.model.ChatRequest;
-import com.fatec.easy.service.RagAnswerResponse;
+import com.fatec.easy.model.RagAnswerResponse;
 import com.fatec.easy.service.IRagTriadService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

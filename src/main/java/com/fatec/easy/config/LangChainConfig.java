@@ -1,6 +1,6 @@
 package com.fatec.easy.config;
 
-import com.fatec.easy.service.RagAssistant;
+import com.fatec.easy.service.IRagAssistante;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -82,7 +82,7 @@ public class LangChainConfig {
     @Bean
     public ContentRetriever contentRetriever(EmbeddingStore<TextSegment> embeddingStore,
             EmbeddingModel embeddingModel) {
-        logger.info(">>>>> Configurando o retriever de conteúdo...");
+        logger.info(">>>>> Configurando o retriever de conteúdo para Easy RAG...");
         return EmbeddingStoreContentRetriever.builder()
                 .embeddingStore(embeddingStore)
                 .embeddingModel(embeddingModel)
@@ -93,9 +93,9 @@ public class LangChainConfig {
 
     // 6. O Assistente configurado (Conecta Chat + RAG + Memória)
     @Bean
-    public RagAssistant ragAssistant(ChatLanguageModel chatLanguageModel, ContentRetriever contentRetriever) {
+    public IRagAssistante ragAssistant(ChatLanguageModel chatLanguageModel, ContentRetriever contentRetriever) {
         logger.info(">>>>>> Configurando o RagAssistant com memória e retriever...");
-        return AiServices.builder(RagAssistant.class)
+        return AiServices.builder(IRagAssistante.class)
                 .chatLanguageModel(chatLanguageModel)
                 .contentRetriever(contentRetriever)
                 .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
