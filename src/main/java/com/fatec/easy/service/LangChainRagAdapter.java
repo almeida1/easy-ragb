@@ -19,6 +19,14 @@ public class LangChainRagAdapter implements IRetrievalPort, IAnswerGenerationPor
         this.ragAssistante = ragAssistante;
     }
 
+    /**
+     * Stub simula o processo de recuperacao. Nao realiza busca real no banco de
+     * dados (Vector Store),
+     * pois com a abordagem "Easy RAG" fornecida pelo LangChain4j, a recuperação de
+     * contexto e a geração da resposta
+     * já são tratadas automaticamente pelo assistente configurado (o
+     * IRagAssistante).
+     */
     @Override
     public List<String> retrieve(String question) {
         logger.info(">>>>>> Recuperando contexto para a pergunta: {}", question);

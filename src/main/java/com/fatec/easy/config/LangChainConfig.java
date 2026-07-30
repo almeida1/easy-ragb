@@ -12,6 +12,7 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -65,14 +66,19 @@ public class LangChainConfig {
     }
 
     // 4. Ingestor (Leva os documentos para a Store)
-    // armazena os documentos em um repositorio de embeddings para que possam ser recuperados posteriormente.
-    // por simplicidade neste exemplo esta sendo utilizado um store em memória(configurado no LangChainConfig), 
-    // mas em produção pode-se utilizar um banco de dados ou outro tipo de armazenamento persistente.
+    // armazena os documentos em um repositorio de embeddings para que possam ser
+    // recuperados posteriormente.
+    // por simplicidade neste exemplo esta sendo utilizado um store em
+    // memória(configurado no LangChainConfig),
+    // mas em produção pode-se utilizar um banco de dados ou outro tipo de
+    // armazenamento persistente.
     @Bean
     public EmbeddingStoreIngestor embeddingStoreIngestor(EmbeddingModel embeddingModel,
             EmbeddingStore<TextSegment> embeddingStore) {
         logger.info(">>>>>> Configurando o ingestor de embeddings...");
         return EmbeddingStoreIngestor.builder()
+                .documentSplitter(DocumentSplitters.recursive(500, 50)) // Divide em pedaços de 500 caracteres, com
+                                                                        // sobreposição de 50
                 .embeddingModel(embeddingModel)
                 .embeddingStore(embeddingStore)
                 .build();
