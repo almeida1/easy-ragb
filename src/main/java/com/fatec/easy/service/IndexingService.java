@@ -39,12 +39,13 @@ public class IndexingService {
         try {
             Document document = new ApacheTikaDocumentParser().parse(dataStream);
             ingestor.ingest(document);
-            logger.info(">>>>>> Indexação concluída. Caracteres ingeridos: " + document.text().length());
+            logger.info(
+                    ">>>>>> IndexingService - Indexação concluída. Caracteres ingeridos: " + document.text().length());
         } catch (OpenAiHttpException e) {
-            logger.error(">>>>>> Erro ao indexar o documento.", e);
+            logger.error(">>>>>> IndexingService - erro ao indexar o documento.", e.getMessage());
             throw e;
         } catch (RuntimeException e) {
-            logger.error(">>>>>> Erro inesperado durante a indexação.", e);
+            logger.error(">>>>>> IndexingService - erro inesperado durante a indexação.", e.getMessage());
             throw e;
         }
     }

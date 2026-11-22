@@ -53,6 +53,7 @@ public class RagTriadController {
 
     @PostMapping("/evaluate")
     public ResponseEntity<RagAnswerResponse> evaluate(@RequestBody ChatRequest request) {
+        logger.info(">>>>>> Evaluating request: {}", request.getQuestion());
         RagAnswerResponse response = ragTriadService.answer(request.getQuestion());
         return ResponseEntity.ok(response);
     }

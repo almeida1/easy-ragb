@@ -1,24 +1,27 @@
 package com.fatec.easy.config;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.fatec.easy.service.IRagAssistante;
+
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
-import dev.langchain4j.data.segment.TextSegment;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.time.Duration;
 
 @Configuration
 public class LangChainConfig {
@@ -34,29 +37,39 @@ public class LangChainConfig {
     @Value("${langchain4j.open-ai.embedding-model.model-name}")
     private String embeddingModelName;
 
+    @Value("${langchain4j.open-ai.chat-model.base-url:http://localhost:11434/v1}")
+    private String baseUrl;
+
     // 1. Configuração do Modelo de Chat
     @Bean
     public ChatLanguageModel chatLanguageModel() {
         logger.info(">>>>>> Configurando o modelo de chat: {}", chatModelName);
         return OpenAiChatModel.builder()
+                .baseUrl(baseUrl)
                 .apiKey(apiKey)
                 .modelName(chatModelName)
-                .temperature(0.0) // Essencial para RAG: evita que a IA invente factos
+                .temperature(0.0) // Essencial para RAG: diminui a chance inventar fatos
+                .timeout(Duration.ofSeconds(180)) // <--- Timeout de 3 minutos para modelos locais
                 .logRequests(true)
                 .logResponses(true)
                 .build();
     }
 
     // 2. Configuração do Modelo de Embedding
+    // @Bean
+    // public EmbeddingModel embeddingModel() {
+    // logger.info(">>>>>> Configurando o modelo de embedding: {}",
+    // embeddingModelName);
+    // return OpenAiEmbeddingModel.builder()
+    // .apiKey(apiKey)
+    // .modelName(embeddingModelName)
+    // .logRequests(true)
+    // .logResponses(true)
+    // .build();
+    // }
     @Bean
     public EmbeddingModel embeddingModel() {
-        logger.info(">>>>>> Configurando o modelo de embedding: {}", embeddingModelName);
-        return OpenAiEmbeddingModel.builder()
-                .apiKey(apiKey)
-                .modelName(embeddingModelName)
-                .logRequests(true)
-                .logResponses(true)
-                .build();
+        return new AllMiniLmL6V2EmbeddingModel();
     }
 
     // 3. Store em Memória
