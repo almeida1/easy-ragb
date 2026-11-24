@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fatec.easy.service.IRagAssistante;
+import com.fatec.easy.service.IRagJudgeAssistant;
 
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
@@ -28,19 +30,33 @@ public class LangChainConfig {
 
     private final Logger logger = LogManager.getLogger(this.getClass());
 
-    @Value("${langchain4j.open-ai.chat-model.api-key}")
-    private String apiKey;
-
-    @Value("${langchain4j.open-ai.chat-model.model-name}")
-    private String chatModelName;
-
-    @Value("${langchain4j.open-ai.embedding-model.model-name}")
-    private String embeddingModelName;
-
-    @Value("${langchain4j.open-ai.chat-model.base-url:http://localhost:11434/v1}")
+    @Value("${app.ai.chat.base-url}")
     private String baseUrl;
 
-    // 1. Configuração do Modelo de Chat
+    @Value("${app.ai.chat.api-key}")
+    private String apiKey;
+
+    @Value("${app.ai.chat.model-name}")
+    private String chatModelName;
+
+    @Value("${app.ai.chat.temperature:0.0}")
+    private Double temperature;
+
+    @Value("${app.ai.chat.timeout-seconds:180}")
+    private Long timeoutSeconds;
+
+    @Value("${app.ai.rag.max-results:3}")
+    private Integer maxResults;
+
+    @Value("${app.ai.rag.min-score:0.5}")
+    private Double minScore;
+
+    @Value("${app.ai.rag.chunk-size:500}")
+    private Integer chunkSize;
+
+    @Value("${app.ai.rag.chunk-overlap:50}")
+    private Integer chunkOverlap;
+
     @Bean
     public ChatLanguageModel chatLanguageModel() {
         logger.info(">>>>>> Configurando o modelo de chat: {}", chatModelName);
@@ -48,72 +64,48 @@ public class LangChainConfig {
                 .baseUrl(baseUrl)
                 .apiKey(apiKey)
                 .modelName(chatModelName)
-                .temperature(0.0) // Essencial para RAG: diminui a chance inventar fatos
-                .timeout(Duration.ofSeconds(180)) // <--- Timeout de 3 minutos para modelos locais
+                .temperature(temperature)
+                .timeout(Duration.ofSeconds(timeoutSeconds))
+                .maxRetries(1)
                 .logRequests(true)
                 .logResponses(true)
                 .build();
     }
 
-    // 2. Configuração do Modelo de Embedding
-    // @Bean
-    // public EmbeddingModel embeddingModel() {
-    // logger.info(">>>>>> Configurando o modelo de embedding: {}",
-    // embeddingModelName);
-    // return OpenAiEmbeddingModel.builder()
-    // .apiKey(apiKey)
-    // .modelName(embeddingModelName)
-    // .logRequests(true)
-    // .logResponses(true)
-    // .build();
-    // }
     @Bean
     public EmbeddingModel embeddingModel() {
+        logger.info(">>>>>> Configurando modelo de embedding local: AllMiniLmL6V2");
         return new AllMiniLmL6V2EmbeddingModel();
     }
 
-    // 3. Store em Memória
     @Bean
     public EmbeddingStore<TextSegment> embeddingStore() {
         return new InMemoryEmbeddingStore<>();
     }
 
-    // 4. Ingestor (Leva os documentos para a Store)
-    // armazena os documentos em um repositorio de embeddings para que possam ser
-    // recuperados posteriormente.
-    // por simplicidade neste exemplo esta sendo utilizado um store em
-    // memória(configurado no LangChainConfig),
-    // mas em produção pode-se utilizar um banco de dados ou outro tipo de
-    // armazenamento persistente.
     @Bean
     public EmbeddingStoreIngestor embeddingStoreIngestor(EmbeddingModel embeddingModel,
             EmbeddingStore<TextSegment> embeddingStore) {
-        logger.info(">>>>>> Configurando o ingestor de embeddings...");
         return EmbeddingStoreIngestor.builder()
-                .documentSplitter(DocumentSplitters.recursive(500, 50)) // Divide em pedaços de 500 caracteres, com
-                                                                        // sobreposição de 50
+                .documentSplitter(DocumentSplitters.recursive(chunkSize, chunkOverlap))
                 .embeddingModel(embeddingModel)
                 .embeddingStore(embeddingStore)
                 .build();
     }
 
-    // 5. Retriever (Busca os documentos relevantes)
     @Bean
     public ContentRetriever contentRetriever(EmbeddingStore<TextSegment> embeddingStore,
             EmbeddingModel embeddingModel) {
-        logger.info(">>>>> Configurando o retriever de conteúdo para Easy RAG...");
         return EmbeddingStoreContentRetriever.builder()
                 .embeddingStore(embeddingStore)
                 .embeddingModel(embeddingModel)
-                .maxResults(3)
-                .minScore(0.5)
+                .maxResults(maxResults)
+                .minScore(minScore)
                 .build();
     }
 
-    // 6. O Assistente configurado (Conecta Chat + RAG + Memória)
     @Bean
     public IRagAssistante ragAssistant(ChatLanguageModel chatLanguageModel, ContentRetriever contentRetriever) {
-        logger.info(">>>>>> Configurando o RagAssistant com memória e retriever...");
         return AiServices.builder(IRagAssistante.class)
                 .chatLanguageModel(chatLanguageModel)
                 .contentRetriever(contentRetriever)
@@ -121,4 +113,15 @@ public class LangChainConfig {
                 .build();
     }
 
+    @Bean
+    public IRagJudgeAssistant ragJudgeAssistant(ChatLanguageModel chatLanguageModel) {
+        return AiServices.builder(IRagJudgeAssistant.class)
+                .chatLanguageModel(chatLanguageModel)
+                .build();
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
+    }
 }

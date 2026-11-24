@@ -22,7 +22,7 @@ class DefaultRagTriadServiceTest {
         );
 
         // Adapta a interface do assistente para as portas de Retrieval e Generation
-        var adapter = new LangChainRagAdapter(assistant);
+        var adapter = new LangChainRagAdapter(assistant, null);
 
         // Passa as três portas exigidas pelo novo construtor
         DefaultRagTriadService service = new DefaultRagTriadService(

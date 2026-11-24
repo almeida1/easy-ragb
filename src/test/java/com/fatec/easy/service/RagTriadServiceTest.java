@@ -20,7 +20,7 @@ void shouldComposeAnswerAndEvaluationUsingEasyRagFlow() {
     );
 
     // Instancia o adaptador que provê IRetrievalPort e IAnswerGenerationPort
-    var adapter = new LangChainRagAdapter(assistant);
+    var adapter = new LangChainRagAdapter(assistant, null);
 
     // Passa as três portas necessárias para o serviço
     IRagTriadService service = new DefaultRagTriadService(
@@ -47,7 +47,7 @@ void shouldComposeAnswerAndEvaluationUsingEasyRagFlow() {
                 "O conteúdo recuperado não sustenta a resposta fornecida");
 
         // Instancia o adaptador que provê IRetrievalPort e IAnswerGenerationPort
-        var adapter = new LangChainRagAdapter(assistant);
+        var adapter = new LangChainRagAdapter(assistant, null);
 
         // Passa as três portas necessárias para o serviço
         IRagTriadService service = new DefaultRagTriadService(

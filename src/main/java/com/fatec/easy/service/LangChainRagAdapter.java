@@ -5,31 +5,47 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import dev.langchain4j.rag.content.Content;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.query.Query;
+
 /**
- * Adaptador simples para o fluxo Easy RAG do LangChain4j.
- * A recuperação e a geração passam a ser tratadas pelo assistente com retriever
- * configurado, sem depender de um contexto manual placeholder.
+ * Adaptador para o fluxo RAG do LangChain4j.
+ * Integra a recuperação de contexto através do ContentRetriever e a geração
+ * da resposta através do assistente IRagAssistante.
  */
 @Service
 public class LangChainRagAdapter implements IRetrievalPort, IAnswerGenerationPort {
     private final Logger logger = LogManager.getLogger(this.getClass());
     private final IRagAssistante ragAssistante;
+    private final ContentRetriever contentRetriever;
 
-    public LangChainRagAdapter(IRagAssistante ragAssistante) {
+    public LangChainRagAdapter(IRagAssistante ragAssistante, ContentRetriever contentRetriever) {
         this.ragAssistante = ragAssistante;
+        this.contentRetriever = contentRetriever;
     }
 
     /**
-     * Stub simula o processo de recuperacao. Nao realiza busca real no banco de
-     * dados (Vector Store),
-     * pois com a abordagem "Easy RAG" fornecida pelo LangChain4j, a recuperação de
-     * contexto e a geração da resposta
-     * já são tratadas automaticamente pelo assistente configurado (o
-     * IRagAssistante).
+     * Recupera trechos de contexto relevantes utilizando o ContentRetriever.
+     * Caso o ContentRetriever não esteja presente (em testes unitários isolados),
+     * retorna um contexto padrão simulado.
      */
     @Override
     public List<String> retrieve(String question) {
         logger.info(">>>>>> Recuperando contexto para a pergunta: {}", question);
+        if (contentRetriever != null) {
+            try {
+                List<Content> contents = contentRetriever.retrieve(Query.from(question));
+                if (contents != null && !contents.isEmpty()) {
+                    return contents.stream()
+                            .map(c -> c.textSegment().text())
+                            .toList();
+                }
+                return List.of("Nenhum contexto relevante foi encontrado no repositório para a pergunta: " + question);
+            } catch (Exception e) {
+                logger.warn("Falha ao recuperar contexto do ContentRetriever: {}", e.getMessage());
+            }
+        }
         return List.of("Contexto recuperado automaticamente pela abordagem Easy RAG para: " + question);
     }
 
